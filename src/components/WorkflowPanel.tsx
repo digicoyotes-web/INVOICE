@@ -86,6 +86,11 @@ export default function WorkflowPanel({
   const [selectedInvoiceIds, setSelectedInvoiceIds] = useState<string[]>([]);
   const [isExportingZip, setIsExportingZip] = useState(false);
 
+  // AI Insight states
+  const [insightText, setInsightText] = useState("");
+  const [isGeneratingInsight, setIsGeneratingInsight] = useState(false);
+  const [insightProposalId, setInsightProposalId] = useState("");
+
   const toggleSelectProposal = (id: string) => {
     setSelectedProposalIds((prev) =>
       prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
@@ -113,6 +118,47 @@ export default function WorkflowPanel({
       setSelectedInvoiceIds(invoices.map((inv) => inv.id));
     }
   };
+
+  const selectedProposal = proposals.find((p) => p.id === selectedProposalId);
+
+  React.useEffect(() => {
+    if (!selectedProposal || selectedProposal.status !== ProposalStatus.IN_REVIEW) {
+      setInsightText("");
+      setInsightProposalId("");
+      return;
+    }
+
+    if (insightProposalId === selectedProposal.id) return; // Already generated
+
+    const generateInsight = async () => {
+      setIsGeneratingInsight(true);
+      setInsightProposalId(selectedProposal.id);
+      try {
+        const res = await fetch("/api/generate-insights", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            title: selectedProposal.title,
+            sections: selectedProposal.sections,
+            items: selectedProposal.items
+          })
+        });
+        if (!res.ok) {
+          const err = await res.json();
+          throw new Error(err.error || "Failed to generate AI insight");
+        }
+        const data = await res.json();
+        setInsightText(data.insight);
+      } catch (err: any) {
+        console.error(err);
+        setInsightText("Failed to load AI Insight. " + (err.message || ""));
+      } finally {
+        setIsGeneratingInsight(false);
+      }
+    };
+
+    generateInsight();
+  }, [selectedProposal]);
 
   const handleDownloadBulkZip = async () => {
     if (selectedProposalIds.length === 0 && selectedInvoiceIds.length === 0) {
@@ -342,7 +388,6 @@ export default function WorkflowPanel({
     }
   };
 
-  const selectedProposal = proposals.find((p) => p.id === selectedProposalId);
   const selectedClient = clients.find((c) => c?.id === selectedProposal?.clientId);
   const selectedDetailing = detailings.find((d) => d.proposalId === selectedProposalId);
   const selectedInvoice = invoices.find((i) => i.proposalId === selectedProposalId);
@@ -997,6 +1042,28 @@ export default function WorkflowPanel({
                       {selectedProposal.sections[0]?.content || "No narrative content loaded."}
                     </p>
                   </div>
+
+                  {/* AI Insight Badge (only in review) */}
+                  {selectedProposal.status === ProposalStatus.IN_REVIEW && (
+                    <div className="bg-amber-500/5 border border-amber-500/20 rounded-xl p-4 space-y-3 relative overflow-hidden group">
+                      <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-amber-500/10 to-transparent rounded-full -mr-6 -mt-6 blur-md" />
+                      <div className="flex items-center gap-2">
+                        <Sparkles className="w-4 h-4 text-amber-400" />
+                        <span className="text-xs font-bold text-amber-400">Gemini AI Risk Insight</span>
+                      </div>
+                      
+                      {isGeneratingInsight ? (
+                        <div className="flex items-center gap-2 text-xs text-slate-400">
+                          <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                          Analyzing proposal for risks & opportunities...
+                        </div>
+                      ) : insightText ? (
+                        <div className="text-xs text-slate-300 leading-relaxed markdown-body">
+                          <div dangerouslySetInnerHTML={{ __html: insightText.replace(/\n/g, "<br/>").replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\*(.*?)\*/g, '<em>$1</em>') }} />
+                        </div>
+                      ) : null}
+                    </div>
+                  )}
 
                   {/* Actions */}
                   <div className="flex flex-col sm:flex-row justify-between gap-4 pt-4 border-t border-slate-800/80">

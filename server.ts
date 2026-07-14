@@ -130,6 +130,63 @@ Please provide a highly professional, detailed, and trendy business proposal. Fo
   }
 });
 
+// API: Generate AI Insight for Proposal Risks
+app.post("/api/generate-insights", async (req, res) => {
+  try {
+    const { title, sections, items } = req.body;
+    if (!title) {
+      res.status(400).json({ error: "title is required" });
+      return;
+    }
+
+    const ai = getGeminiClient();
+    
+    const prompt = `You are a financial and business risk assessor.
+Review the following proposal and summarize the key risks and negotiation opportunities in 2-3 short bullet points.
+
+Proposal Title: ${title}
+Sections: ${JSON.stringify(sections)}
+Items: ${JSON.stringify(items)}
+
+Provide only a JSON object with a single "insight" field containing your brief markdown bullet points.`;
+
+    const response = await ai.models.generateContent({
+      model: "gemini-2.5-flash",
+      contents: prompt,
+      config: {
+        systemInstruction: "You are an expert corporate risk assessor.",
+        responseMimeType: "application/json",
+        responseSchema: {
+          type: Type.OBJECT,
+          properties: {
+            insight: {
+              type: Type.STRING,
+              description: "Markdown string with 2-3 brief bullet points detailing risks/opportunities"
+            }
+          },
+          required: ["insight"]
+        }
+      }
+    });
+
+    const text = response.text;
+    if (!text) {
+      throw new Error("No text content returned from Gemini model.");
+    }
+
+    res.json(JSON.parse(text));
+  } catch (error: any) {
+    console.error("Gemini Insight Error:", error);
+    let errorMessage = error.message || "An error occurred while generating insights with AI.";
+    
+    if (errorMessage.includes("503") || errorMessage.includes("high demand") || errorMessage.includes("UNAVAILABLE")) {
+       errorMessage = "The Gemini AI model is currently experiencing high demand. Please wait a moment and try again.";
+    }
+
+    res.status(500).json({ error: errorMessage });
+  }
+});
+
 // Setup Vite Dev Middleware or Static File Serving
 async function start() {
   if (process.env.NODE_ENV !== "production") {
