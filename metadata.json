@@ -1,0 +1,6 @@
+{
+  "name": "Vinshare Proposal & Invoice Automation",
+  "description": "A premium, trendy, and highly professional proposal and invoice lifecycle manager with AI generation, client response tracking, and brand styling.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
