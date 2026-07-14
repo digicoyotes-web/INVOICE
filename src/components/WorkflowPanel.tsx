@@ -1171,33 +1171,55 @@ export default function WorkflowPanel({
                       </button>
                     </div>
 
-                    {/* Simulation Console */}
-                    <div className="bg-slate-950 border border-slate-800 p-4 rounded-xl space-y-2.5">
-                      <span className="text-[10px] text-slate-500 uppercase tracking-widest font-bold block">Simulate Client Behavior (Testing)</span>
-                      <div className="grid grid-cols-3 gap-2">
-                        <button
-                          onClick={() => handleSimulateClientAction("view")}
-                          disabled={selectedProposal.status === ProposalStatus.DRAFT || selectedProposal.status === ProposalStatus.VERIFIED || selectedProposal.status === ProposalStatus.APPROVED}
-                          className="py-1.5 bg-slate-900 border border-slate-800 text-slate-300 text-xs rounded-lg hover:border-slate-700 disabled:opacity-30"
-                        >
-                          Mark Viewed
-                        </button>
-                        <button
-                          onClick={() => handleSimulateClientAction("approve")}
-                          disabled={selectedProposal.status === ProposalStatus.DRAFT || selectedProposal.status === ProposalStatus.VERIFIED || selectedProposal.status === ProposalStatus.APPROVED}
-                          className="py-1.5 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs rounded-lg hover:bg-emerald-500/20 disabled:opacity-30"
-                        >
-                          Approve Project
-                        </button>
-                        <button
-                          onClick={() => handleSimulateClientAction("reject")}
-                          disabled={selectedProposal.status === ProposalStatus.DRAFT || selectedProposal.status === ProposalStatus.VERIFIED || selectedProposal.status === ProposalStatus.APPROVED}
-                          className="py-1.5 bg-rose-500/10 border border-rose-500/30 text-rose-400 text-xs rounded-lg hover:bg-rose-500/20 disabled:opacity-30"
-                        >
-                          Stall / Reject
-                        </button>
+                    {/* Client Behavior / Next Steps */}
+                    {selectedProposal.status === ProposalStatus.APPROVED && !selectedInvoice ? (
+                      <div className="bg-emerald-500/10 border border-emerald-500/30 p-5 rounded-xl space-y-3 relative overflow-hidden group mt-4">
+                        <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-emerald-500/20 to-transparent rounded-full -mr-10 -mt-10 blur-xl" />
+                        <div className="flex items-center justify-between relative z-10">
+                          <div>
+                            <span className="text-[10px] text-emerald-400 uppercase tracking-widest font-bold block mb-1">Proposal Approved</span>
+                            <p className="text-sm text-slate-300 font-medium">Ready for final detailing and financial authorization.</p>
+                          </div>
+                          <button
+                            onClick={() => {
+                              handleAuthorizeInvoice();
+                            }}
+                            disabled={!isFinanceRole}
+                            className="py-3 px-6 bg-emerald-500 hover:bg-emerald-400 text-slate-950 rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition shadow-lg shadow-emerald-500/20 whitespace-nowrap disabled:opacity-40 disabled:cursor-not-allowed"
+                          >
+                            <Receipt className="w-5 h-5" />
+                            Convert to Invoice {isFinanceRole ? "" : "(Finance Only)"}
+                          </button>
+                        </div>
                       </div>
-                    </div>
+                    ) : (
+                      <div className="bg-slate-950 border border-slate-800 p-4 rounded-xl space-y-2.5">
+                        <span className="text-[10px] text-slate-500 uppercase tracking-widest font-bold block">Simulate Client Behavior (Testing)</span>
+                        <div className="grid grid-cols-3 gap-2">
+                          <button
+                            onClick={() => handleSimulateClientAction("view")}
+                            disabled={selectedProposal.status === ProposalStatus.DRAFT || selectedProposal.status === ProposalStatus.VERIFIED || selectedProposal.status === ProposalStatus.APPROVED}
+                            className="py-1.5 bg-slate-900 border border-slate-800 text-slate-300 text-xs rounded-lg hover:border-slate-700 disabled:opacity-30"
+                          >
+                            Mark Viewed
+                          </button>
+                          <button
+                            onClick={() => handleSimulateClientAction("approve")}
+                            disabled={selectedProposal.status === ProposalStatus.DRAFT || selectedProposal.status === ProposalStatus.VERIFIED || selectedProposal.status === ProposalStatus.APPROVED}
+                            className="py-1.5 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs rounded-lg hover:bg-emerald-500/20 disabled:opacity-30"
+                          >
+                            Approve Project
+                          </button>
+                          <button
+                            onClick={() => handleSimulateClientAction("reject")}
+                            disabled={selectedProposal.status === ProposalStatus.DRAFT || selectedProposal.status === ProposalStatus.VERIFIED || selectedProposal.status === ProposalStatus.APPROVED}
+                            className="py-1.5 bg-rose-500/10 border border-rose-500/30 text-rose-400 text-xs rounded-lg hover:bg-rose-500/20 disabled:opacity-30"
+                          >
+                            Stall / Reject
+                          </button>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               )}
