@@ -62,7 +62,7 @@ Please provide a highly professional, detailed, and trendy business proposal. Fo
 4. Professional terms and conditions.`;
 
     const response = await ai.models.generateContent({
-      model: "gemini-3.5-flash",
+      model: "gemini-2.5-flash",
       contents: prompt,
       config: {
         systemInstruction: "You are an expert corporate strategist and professional copywriter. Write highly persuasive, elegant business copy.",
@@ -117,8 +117,15 @@ Please provide a highly professional, detailed, and trendy business proposal. Fo
     res.json(JSON.parse(text));
   } catch (error: any) {
     console.error("Gemini Generation Error:", error);
+    
+    let errorMessage = error.message || "An error occurred while generating the proposal with AI.";
+    
+    if (errorMessage.includes("503") || errorMessage.includes("high demand") || errorMessage.includes("UNAVAILABLE")) {
+       errorMessage = "The Gemini AI model is currently experiencing high demand. Please wait a moment and try again.";
+    }
+
     res.status(500).json({ 
-      error: error.message || "An error occurred while generating the proposal with AI." 
+      error: errorMessage 
     });
   }
 });

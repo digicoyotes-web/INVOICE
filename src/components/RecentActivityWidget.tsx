@@ -6,6 +6,7 @@
 import React, { useMemo } from "react";
 import { AuditTrail, MessageLog } from "../types";
 import D3Sparkline from "./D3Sparkline";
+import TiltCard from "./TiltCard";
 import { Activity, Clock } from "lucide-react";
 
 interface RecentActivityWidgetProps {
@@ -89,7 +90,7 @@ export default function RecentActivityWidget({
   }, [auditTrails, messageLogs]);
 
   return (
-    <div className="bg-slate-900/60 backdrop-blur-xl border border-slate-800/80 rounded-2xl p-5 shadow-xl relative overflow-hidden group hover:border-slate-700 transition">
+    <TiltCard className="bg-slate-900/60 backdrop-blur-xl border border-slate-800/80 rounded-2xl p-5 shadow-xl relative overflow-hidden group hover:border-slate-700 transition h-full">
       {/* Visual neon back-gradient */}
       <div 
         className="absolute top-0 right-0 w-24 h-24 rounded-full -mr-6 -mt-6 opacity-10 blur-xl transition duration-500 group-hover:scale-110"
@@ -137,6 +138,6 @@ export default function RecentActivityWidget({
           {peakHourName} ({peakCount} events)
         </span>
       </div>
-    </div>
+    </TiltCard>
   );
 }

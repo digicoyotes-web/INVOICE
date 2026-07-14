@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { 
   Client, Proposal, Detailing, Invoice, MessageLog, AuditTrail, 
   BrandConfig, ProposalTemplate, ProposalStatus, InvoiceStatus 
@@ -19,6 +19,7 @@ import ProposalWizard from "./components/ProposalWizard";
 import WorkflowPanel from "./components/WorkflowPanel";
 import PrintPreview from "./components/PrintPreview";
 import RecentActivityWidget from "./components/RecentActivityWidget";
+import TiltCard from "./components/TiltCard";
 import { 
   Briefcase, Receipt, Users, Layers, Sparkles, Send, 
   TrendingUp, Clock, FilePlus, RefreshCw, Layers3, Activity, 
@@ -107,6 +108,7 @@ export default function App() {
   const [printPreview, setPrintPreview] = useState<{ type: "proposal" | "invoice"; id: string } | null>(null);
 
   // --- Global Navbar Search & Workspace Synchronizer ---
+  const searchRef = useRef<HTMLInputElement>(null);
   const [globalSearchQuery, setGlobalSearchQuery] = useState("");
   const [globalSearchDropdownOpen, setGlobalSearchDropdownOpen] = useState(false);
   const [globalSelectedProposalId, setGlobalSelectedProposalId] = useState<string>("");
@@ -133,6 +135,21 @@ export default function App() {
       setAuditTrails(INITIAL_AUDIT_TRAILS);
     }
   };
+
+  useEffect(() => {
+    const handleGlobalKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === "k") {
+        e.preventDefault();
+        searchRef.current?.focus();
+      }
+      if ((e.metaKey || e.ctrlKey) && e.key === "p") {
+        e.preventDefault();
+        setShowProposalWizard(true);
+      }
+    };
+    window.addEventListener("keydown", handleGlobalKeyDown);
+    return () => window.removeEventListener("keydown", handleGlobalKeyDown);
+  }, []);
 
   // --- Color Theme Mapping ---
   const getBrandColors = (theme: BrandConfig["themeColor"]) => {
@@ -211,6 +228,7 @@ export default function App() {
             <div className="relative">
               <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
               <input
+                ref={searchRef}
                 type="text"
                 value={globalSearchQuery}
                 onChange={(e) => {
@@ -231,6 +249,13 @@ export default function App() {
                 >
                   Clear
                 </button>
+              )}
+              {!globalSearchQuery && (
+                <div className="absolute right-3.5 top-1/2 -translate-y-1/2 flex items-center pointer-events-none">
+                  <span className="text-[10px] text-slate-500 font-mono bg-slate-800/40 px-1.5 py-0.5 rounded border border-slate-700/50">
+                    ⌘K
+                  </span>
+                </div>
               )}
             </div>
 
@@ -387,7 +412,7 @@ export default function App() {
               className="py-2.5 px-4 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 rounded-xl text-xs font-bold flex items-center gap-2 shadow-lg shadow-amber-500/10 hover:scale-[1.02] active:scale-[0.98] transition-all"
             >
               <FilePlus className="w-4 h-4 fill-slate-950" />
-              Add Proposal Wizard
+              <span>Add Proposal Wizard <span className="opacity-70 font-normal ml-1 font-mono tracking-tighter">(⌘P)</span></span>
             </button>
           </div>
 
@@ -439,7 +464,7 @@ export default function App() {
               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-6">
                 
                 {/* 1. Outstanding Proposals Value */}
-                <div className="bg-slate-900/60 backdrop-blur-xl border border-slate-800/80 rounded-2xl p-5 shadow-xl relative overflow-hidden group hover:border-slate-700 transition">
+                <TiltCard className="bg-slate-900/60 backdrop-blur-xl border border-slate-800/80 rounded-2xl p-5 shadow-xl relative overflow-hidden group hover:border-slate-700 transition h-full">
                   <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-amber-500/5 to-transparent rounded-full -mr-6 -mt-6" />
                   <div className="flex items-center justify-between">
                     <span className="text-[10px] text-slate-500 uppercase font-bold tracking-widest">Active Pipeline</span>
@@ -451,10 +476,10 @@ export default function App() {
                       <span className="text-emerald-400 font-bold">+{proposals.length} active</span> documents under draft
                     </p>
                   </div>
-                </div>
+                </TiltCard>
 
                 {/* 2. Proposal Conversion Rate */}
-                <div className="bg-slate-900/60 backdrop-blur-xl border border-slate-800/80 rounded-2xl p-5 shadow-xl relative overflow-hidden group hover:border-slate-700 transition">
+                <TiltCard className="bg-slate-900/60 backdrop-blur-xl border border-slate-800/80 rounded-2xl p-5 shadow-xl relative overflow-hidden group hover:border-slate-700 transition h-full">
                   <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-indigo-500/5 to-transparent rounded-full -mr-6 -mt-6" />
                   <div className="flex items-center justify-between">
                     <span className="text-[10px] text-slate-500 uppercase font-bold tracking-widest">Conversion Rate</span>
@@ -466,10 +491,10 @@ export default function App() {
                       {approvedProposals} approved proposals settled
                     </p>
                   </div>
-                </div>
+                </TiltCard>
 
                 {/* 3. Outstanding Invoices value */}
-                <div className="bg-slate-900/60 backdrop-blur-xl border border-slate-800/80 rounded-2xl p-5 shadow-xl relative overflow-hidden group hover:border-slate-700 transition">
+                <TiltCard className="bg-slate-900/60 backdrop-blur-xl border border-slate-800/80 rounded-2xl p-5 shadow-xl relative overflow-hidden group hover:border-slate-700 transition h-full">
                   <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-rose-500/5 to-transparent rounded-full -mr-6 -mt-6" />
                   <div className="flex items-center justify-between">
                     <span className="text-[10px] text-slate-500 uppercase font-bold tracking-widest">Pending Authorized Invoices</span>
@@ -481,10 +506,10 @@ export default function App() {
                       Tax & discount compliant sequential balance
                     </p>
                   </div>
-                </div>
+                </TiltCard>
 
                 {/* 4. Automated Reminders sent */}
-                <div className="bg-slate-900/60 backdrop-blur-xl border border-slate-800/80 rounded-2xl p-5 shadow-xl relative overflow-hidden group hover:border-slate-700 transition">
+                <TiltCard className="bg-slate-900/60 backdrop-blur-xl border border-slate-800/80 rounded-2xl p-5 shadow-xl relative overflow-hidden group hover:border-slate-700 transition h-full">
                   <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-emerald-500/5 to-transparent rounded-full -mr-6 -mt-6" />
                   <div className="flex items-center justify-between">
                     <span className="text-[10px] text-slate-500 uppercase font-bold tracking-widest">Reminders Sent (24h Queue)</span>
@@ -496,7 +521,7 @@ export default function App() {
                       Cron job loops checking response pending
                     </p>
                   </div>
-                </div>
+                </TiltCard>
 
                 {/* 5. Recent Activity D3 Sparkline Widget */}
                 <RecentActivityWidget
